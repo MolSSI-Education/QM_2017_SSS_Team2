@@ -6,7 +6,7 @@ if __name__ == "__main__":
         version="0.1.1",
         description='MolSSI Software Summer School 2017 Quantum Mechanics Group 2 Repo',
         author='QM Team 2',
-        url="https://github.com/MolSSI-SSS/QM_2017_SSS_Team2"
+        url="https://github.com/MolSSI-SSS/QM_2017_SSS_Team2",
         license='BSD-3C',
         packages=setuptools.find_packages(),
         install_requires=[
