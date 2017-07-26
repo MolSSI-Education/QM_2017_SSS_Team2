@@ -2,29 +2,51 @@
 A small set of functions for doing math operations.
 """
 
-
-def add(a, b):
+# Add Function
+def add(arg1, arg2):
     """
-    Addition between two arguments
+    The add() function takes two arguments and returns their sum
     """
-    return a + b
-
-
-def mult(a, b):
-    """
-    Multiplication between two arguments
-    """
-    return a * b
+    return arg1 + arg2
 
 
-def greater(a, b):
+# Subtract Function
+def sub(arg1, arg2):
     """
-    Check for greater between two arguments
+    The sub() function takes two arguments and returns their difference
     """
-    if a >= b:
-        return a
-    elif a < b:
-        return b
-    else:
-        print('Something weird happened')
-        return 0
+    return arg1 - arg2
+
+
+# Multiply Function
+def mult(arg1, arg2):
+    """
+    The mult() function takes two arguments and returns their product
+    """
+    return arg1 * arg2
+
+
+# Divide Function
+def div(arg1, arg2):
+    """
+    The div() function takes two arguments and returns their quotient
+    """
+    return float(arg1) / float(arg2)
+
+
+# Modulus Function
+def mod(arg1, arg2):
+    """
+    The mod() function takes two arguments and returns their modulo
+    """
+    return arg1 % arg2
+
+# Greather Function
+def greater(arg1, arg2):
+    """
+    The greater() function takes two arguments and returns whicever is greater
+    """
+    if arg1 >= arg2:
+        return arg1
+    else: 
+        return arg2
