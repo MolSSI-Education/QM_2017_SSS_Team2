@@ -4,24 +4,19 @@ import psi4
 np.set_printoptions(suppress=True, precision=4)
 
 
-def buildgeom:
-    mol = psi4.geometry("""
-    O
-    H 1 1.1
-    H 1 1.1 2 104
-    """)
-
+def build_geom(mol_string):
+    mol = psi4.geometry(mol_string)
+    
     # Build a molecule
     mol.update_geometry()
     mol.print_out()
+    return mol 
 
-
-    e_conv = 1.e-6
-    d_conv = 1.e-6
-    nel = 5
-    damp_value = 0.20
-    damp_start = 5
-return mol 
+e_conv = 1.e-6
+d_conv = 1.e-6
+nel = 5
+damp_value = 0.20
+damp_start = 5
 
 # Build a basis
 bas = psi4.core.BasisSet.build(mol,target="aug-cc-pvdz")
@@ -45,8 +40,8 @@ H = T + V
 S = np.array(mints.ao_overlap())
 g = np.array(mints.ao_eri())
 
-print(S.shape)
-print(g.shape)
+#print(S.shape)
+#print(g.shape)
 
 
 A = mints.ao_overlap()
@@ -55,13 +50,13 @@ A = np.array(A)
 
 # print(A @ S @ A)
 
-def diag(F):
+def diag(F,A):
     Fp = A.T @ F @ A
     eps, Cp = np.linalg.eigh(Fp)
     C = A @ Cp
-return eps, C
+    return eps, C
 
-eps, C = diag(H)
+eps, C = diag(H,A)
 Cocc = C[:, :nel]
 D = Cocc @ Cocc.T
 
@@ -73,11 +68,14 @@ F_old = H
 def fock_build(D, damp=False):
     J = np.einsum("pqrs,rs->pq",g,D)
     K = np.einsum("prqs,rs->pq", g,D)
-    F = H + 2.0 * J - K
-    F_new = F
+    F_new = H + 2.0 * J - K
     if damp:
         F = damp_value * F_old + (1.0-damp_value) * F_new
-    return F 
+    else:
+        F = F_new
+    F_old = F_new
+    return F
+
 
 for iteration in range(25):
     F = fock_build(D, iteration>5) 
@@ -97,8 +95,8 @@ for iteration in range(25):
             (iteration, E_total, E_diff, grad_rms))
 
     #Break if e_conv and d_conv are met
-    if (E_diff < e_conv) and (grad_rms < d_conv):
-    break
+    if (abs(E_diff) < e_conv) and (grad_rms < d_conv):
+        break
 
     eps, C = diag(F, A)
     Cocc = C[:, :nel]
