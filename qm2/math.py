@@ -1,6 +1,7 @@
 """
-A small set of functions for doing math operations. 
+A small set of functions for doing math operations.
 """
+
 
 def add(a, b):
     """
@@ -8,11 +9,13 @@ def add(a, b):
     """
     return a + b
 
+
 def mult(a, b):
     """
     Multiplication between two arguments
     """
     return a * b
+
 
 def greater(a, b):
     """
@@ -24,4 +27,4 @@ def greater(a, b):
         return b
     else:
         print('Something weird happened')
-        return 0 
+        return 0
