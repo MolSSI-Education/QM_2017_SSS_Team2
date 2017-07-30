@@ -82,7 +82,7 @@ def run_scf(mol_string):
     
         E_diff = E_total - E_old
         E_old = E_total
-    
+    Return E_total    
         print("Iter=%3d  E = % 16.12f  E_diff = % 8.4e  D_diff = % 8.4e" %
                 (iteration, E_total, E_diff, grad_rms))
     
