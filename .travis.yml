@@ -5,6 +5,7 @@ language: python
 
 # Run jobs on container-based infrastructure, can be overridden per job
 sudo: false
+dist: precise
 
 matrix:
     - python: 3.5
