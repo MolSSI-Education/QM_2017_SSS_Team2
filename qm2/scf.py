@@ -14,6 +14,38 @@ def build_geom(molecule_string):
     return mol
 
 
+# Define general function to diagonalize Fock Matrix using Orthogonalization matrix A
+def diag(F, A):
+    Fp = A.T @ F @ A
+    eps, Cp = np.linalg.eigh(Fp)
+    C = A @ Cp
+    return eps, C
+
+
+def JK_build(g, D):
+    # F_pq = H_pq + 2 * G_pqrs D_rs - G_prqs D_rs
+    J = np.einsum("pqrs,rs->pq", g, D)
+    K = np.einsum("prqs,rs->pq", g, D)
+    return J, K
+
+
+
+def update_fock(g, D, H, F_old, damp=False, damp_value=0.20):
+    J,K = JK_build(g, D)
+
+    F_new = H + 2.0 * J - K
+
+    if (damp):
+        F = (damp_value) * F_old + (1.0-damp_value) * F_new
+    else:
+        F = F_new
+
+    return F
+        
+
+
+
+
 def run_scf(mol):
 
     # Build a basis
@@ -55,14 +87,6 @@ def run_scf(mol):
     # print(A @ S @ A)
 
 
-    # Define general function to diagonalize Fock Matrix using Orthogonalization matrix A
-    def diag(F, A):
-        Fp = A.T @ F @ A
-        eps, Cp = np.linalg.eigh(Fp)
-        C = A @ Cp
-        return eps, C
-
-
     # Transform Fock Matrix to Orthogonal Basis
     F = H
     eps, C = diag(F, A)
@@ -74,22 +98,8 @@ def run_scf(mol):
     grad_rms = 100000   # Initialize to a 
     for iteration in range(50):
     
-        def update_fock(D, F_old, damp=False, damp_value=0.20):
-            # F_pq = H_pq + 2 * G_pqrs D_rs - G_prqs D_rs
-            J = np.einsum("pqrs,rs->pq", g, D)
-            K = np.einsum("prqs,rs->pq", g, D)
-
-            F_new = H + 2.0 * J - K
-
-            if (damp):
-                F = (damp_value) * F_old + (1.0-damp_value) * F_new
-            else:
-                F = F_new
-
-            return F
-        
         F_old = F
-        F = update_fock(D, F_old, iteration > 5, damp_value)
+        F = update_fock(g, D, H, F_old, iteration > 5, damp_value)
 
         # Build the AO gradient
         grad = F @ D @ S - S @ D @ F
@@ -125,10 +135,12 @@ def run_scf(mol):
     if (abs(E_diff) > e_conv) or (abs(grad_rms) > d_conv):
         print("\nConvergence criteria were not met!\n")
 
-    # psi4.set_options({"scf_type": "pk"})
-    # psi4_energy = psi4.energy("SCF/sto-3g", molecule=mol)
+    psi4.set_options({"scf_type": "pk"})
+    psi4_energy = psi4.energy("SCF/aug-cc-pVDZ", molecule=mol)
 
-    # print("Energy matches Psi4 %s" % np.allclose(psi4_energy, E_total))
+    print("Energy matches Psi4 %s" % np.allclose(psi4_energy, E_total))
+
+    return E_total
 
 
 
@@ -138,8 +150,13 @@ O
 H 1 1.1
 H 1 1.1 2 104
 """
+#molstr = """
+#H
+#H 1 0.74
+#"""
 
 # Specify necessary variables
+#nel = 2
 nel = 5
 damp_value = 0.20
 damp_start = 5

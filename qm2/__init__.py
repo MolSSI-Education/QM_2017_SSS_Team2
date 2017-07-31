@@ -9,3 +9,9 @@ from .mymath import mult
 from .mymath import div
 from .mymath import mod
 from .mymath import greater
+
+from . import scf
+from .scf import build_geom
+#from .scf import update_fock
+#from .scf import diag
+from .scf import run_scf
