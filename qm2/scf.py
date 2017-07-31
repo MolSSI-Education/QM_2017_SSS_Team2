@@ -56,8 +56,8 @@ def run_scf(molstr, nel, e_conv=1.e-6, d_conv=1.e-6, damp=False):
     # Build a MintsHelper
     mints = psi4.core.MintsHelper(bas)
     nbf = mints.nbf()
-    if (nbf > 100):
-        raise Exception("More than 100 basis functions!")
+    if (nbf > 500):
+        raise Exception("More than 500 basis functions!")
 
 
     # Potential Energy Integrals
