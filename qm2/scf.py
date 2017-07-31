@@ -46,7 +46,8 @@ def update_fock(g, D, H, F_old, damp=False, damp_value=0.20):
 
 
 
-def run_scf(mol):
+def run_scf(molstr, nel, e_conv=1.e-6, d_conv=1.e-6, damp=False):
+    mol = build_geom(molstr)
 
     # Build a basis
     bas = psi4.core.BasisSet.build(mol, target="aug-cc-pVDZ")
@@ -99,7 +100,7 @@ def run_scf(mol):
     for iteration in range(50):
     
         F_old = F
-        F = update_fock(g, D, H, F_old, iteration > 5, damp_value)
+        F = update_fock(g, D, H, F_old, iteration>5)
 
         # Build the AO gradient
         grad = F @ D @ S - S @ D @ F
@@ -141,28 +142,3 @@ def run_scf(mol):
     print("Energy matches Psi4 %s" % np.allclose(psi4_energy, E_total))
 
     return E_total
-
-
-
-# Specify Geometry
-molstr = """
-O
-H 1 1.1
-H 1 1.1 2 104
-"""
-#molstr = """
-#H
-#H 1 0.74
-#"""
-
-# Specify necessary variables
-#nel = 2
-nel = 5
-damp_value = 0.20
-damp_start = 5
-e_conv = 1.e-6
-d_conv = 1.e-6
-
-# Run SCF Energy Calculation
-mol = build_geom(molstr)
-run_scf(mol)

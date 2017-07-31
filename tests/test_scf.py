@@ -18,8 +18,7 @@ def test_build_geom(molstr, E_nuc):
 #    assert qm2.scf.diag(F) == eps, C
 #    assert False
 
-@pytest.mark.parametrize("molstr,E_total",test_data.test_E_scf_data)
-def test_run_scf(molstr, E_total):
-    mol = qm2.scf.build_geom(molstr)
+@pytest.mark.parametrize("molstr, nel, E_total",test_data.test_E_scf_data)
+def test_run_scf(molstr, nel, E_total):
     #assert qm2.scf.run_scf(mol) == E_total
-    assert np.allclose(qm2.scf.run_scf(mol), E_total)
+    assert np.allclose(qm2.scf.run_scf(molstr, nel), E_total)
