@@ -10,7 +10,6 @@ class JKBuilder
 {
     public:
         // Object Members
-        py::array_t<double> g;
         py::array_t<double> g_J;
         py::array_t<double> g_K;
 
@@ -22,29 +21,18 @@ class JKBuilder
 };
 
 
-JKBuilder::JKBuilder (py::array_t<double> g)
+JKBuilder::JKBuilder (py::array_t<double> g): g_J(g)
 {
-    // Read in g and get info
-    py::buffer_info g_info = g.request();   
-    if(g_info.ndim != 4)
-        throw std::runtime_error("g is not four dimensional array");
-    size_t nbf = g_info.shape[0];
-    
-
     // Read in g[p][q][r][s] as g_J since it is already properly indexed for J_build
-    g_J = g;
     py::buffer_info g_J_info = g_J.request();   
+    if(g_J_info.ndim != 4)
+        throw std::runtime_error("g_J is not four dimensional array");
+    size_t nbf = g_J_info.shape[0];
     const double * g_J_data = static_cast<double *>(g_J_info.ptr);
-    for(int i = 0; i < nbf*nbf*nbf*nbf; i++)
-    {
-        std::cout << g_J_data[i] << std::endl;
-    }
-    
+
 
     // Translate g[p][q][r][s] to g[p][r][q][s] for proper indexing for K_build
-    g_K = g;
-    py::buffer_info g_K_info = g_K.request();
-    double * g_K_data = static_cast<double *>(g_K_info.ptr);
+    std::vector<double> g_K_data(nbf*nbf*nbf*nbf);
 
     for(int p = 0; p < nbf; p++)
     {
@@ -62,6 +50,18 @@ JKBuilder::JKBuilder (py::array_t<double> g)
             }
         }
     }
+
+    py::buffer_info g_K_buf = 
+    {
+        g_K_data.data(),
+        sizeof(double),
+        py::format_descriptor<double>::format(),
+        4,
+        { nbf, nbf, nbf, nbf },
+        { nbf * nbf * nbf * sizeof(double), nbf * nbf * sizeof(double), nbf * sizeof(double), sizeof(double) }
+    };
+
+    g_K = py::array_t<double>(g_K_buf);
 }
 
 
@@ -122,6 +122,56 @@ py::array_t<double> JKBuilder::J_build(py::array_t<double> D)
 
 
 
+py::array_t<double> JKBuilder::K_build(py::array_t<double> D)
+{
+    py::buffer_info g_K_info = g_K.request();
+    py::buffer_info D_info = D.request();
+
+    if(g_K_info.ndim != 4)
+        throw std::runtime_error("g is not four dimensional array");
+
+    if(D_info.ndim != 2)
+        throw std::runtime_error("D is not a two dimensional array");
+
+    if(g_K_info.shape[2]*g_K_info.shape[3] != D_info.shape[0]*D_info.shape[1])
+        throw std::runtime_error("r*s of g != r*s of D");
+
+    size_t nbf = g_K_info.shape[0];
+
+    const double * g_K_data = static_cast<double *>(g_K_info.ptr);
+    const double * D_data = static_cast<double *>(D_info.ptr);
+
+    std::vector<double> K_data(nbf * nbf);
+
+    //g[i][j] = g[i * row + j]
+    //g[p][q][r][s] = g[pq * len(pq) + rs]
+    //g[p][q][r][s] = g[(p * len(p) + q) * len(pq) + (r * len(rs) + s)]
+
+    LAWrap::gemv('T',
+            nbf*nbf,
+            nbf*nbf,
+            1.0,
+            g_K_data,
+            nbf*nbf,
+            D_data,
+            1,
+            0.0,
+            K_data.data(),
+            1
+            );
+
+    py::buffer_info K_buf = 
+    {
+        K_data.data(),
+        sizeof(double),
+        py::format_descriptor<double>::format(),
+        2,
+        { nbf, nbf },
+        { nbf * sizeof(double), sizeof(double) }
+    };
+
+    return py::array_t<double>(K_buf);
+}
 //py::array_t<double> JKBuilder::K_build(py::array_t<double> g,
 //                                       py::array_t<double> D)
 //{
@@ -201,7 +251,8 @@ PYBIND11_PLUGIN(jk_build)
 			    "also did you know that these pieces will be treated as one string?!"
 				"Note: no comas!")
     .def(py::init<py::array_t<double>>()) // this defines the constructor as a function that takes two arguments one is an int the other a double
-    .def("J_build", &JKBuilder::J_build, "this binds the function member_function to the python verison of the class"); //<-- note this semicolon everything from py::class.. to here was one c++ statment! 
+    .def("J_build", &JKBuilder::J_build, "this binds the function member_function to the python verison of the class") //<-- note this semicolon everything from py::class.. to here was one c++ statment! 
+    .def("K_build", &JKBuilder::K_build, "this binds the function member_function to the python verison of the class"); //<-- note this semicolon everything from py::class.. to here was one c++ statment! 
 
   return m.ptr();
 

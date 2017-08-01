@@ -17,7 +17,6 @@ mol = psi4.geometry("""
 basis = psi4.core.BasisSet.build(mol, target="cc-pVDZ")
 mints = psi4.core.MintsHelper(basis)
 g = np.array(mints.ao_eri())
-print(g)
 
 # Symmetric random density
 nbf = g.shape[0]
@@ -31,10 +30,7 @@ K_ref = np.einsum("pqrs,qs->pr", g, D)
 # Your new class implementation
 JK_bldr = jk_build.JKBuilder(g)
 J = JK_bldr.J_build(D)
-print(J_ref)
-print("\n\n\n")
-print(J)
-#JK_bldr.K_build(D)
+K = JK_bldr.K_build(D)
 
 # Your old implementation
 #J = jk_build.J_build(g, D)
@@ -42,4 +38,4 @@ print(J)
 
 # Make sure your implementation is correct
 print("J is correct: %s" % np.allclose(J, J_ref))
-#print("K is correct: %s" % np.allclose(K, K_ref))
+print("K is correct: %s" % np.allclose(K, K_ref))
