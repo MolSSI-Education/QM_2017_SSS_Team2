@@ -19,6 +19,11 @@ find_package(pybind11 CONFIG REQUIRED
 find_package(LAWrap
              PATHS $ENV{CONDA_PREFIX}
              NO_DEFAULT_PATH)
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  message(STATUS "Found OpenMP: flags--> ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 message(STATUS "Found pybind11: ${pybind11_CONFIG}")
 message(STATUS "Found LAWrap: ${LAWrap_CONFIG}")
