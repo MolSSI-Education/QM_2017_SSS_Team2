@@ -6,6 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+#CMake files
+*Cache.txt
+*/CMakeFiles/*
+cmake_install.cmake
+Makefile
+
+#psi4 tmp files
+timer.dat
+
+
 # Distribution / packaging
 .Python
 env/
