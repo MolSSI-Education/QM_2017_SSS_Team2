@@ -23,6 +23,11 @@ find_package(LAWrap
 message(STATUS "Found pybind11: ${pybind11_CONFIG}")
 message(STATUS "Found LAWrap: ${LAWrap_CONFIG}")
 
+FIND_PACKAGE(OpenMP)
+IF(OPENMP_FOUND)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ENDIF()
+
 # Creates a python module named "module_name"
 pybind11_add_module(jk_build MODULE jk_build.cpp)
 #target_link_libraries(jk_build LAWrap)
