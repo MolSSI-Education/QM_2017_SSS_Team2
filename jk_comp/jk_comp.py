@@ -17,6 +17,7 @@ mol = psi4.geometry("""
 basis = psi4.core.BasisSet.build(mol, target="cc-pVDZ")
 mints = psi4.core.MintsHelper(basis)
 g = np.array(mints.ao_eri())
+print(g)
 
 # Symmetric random density
 nbf = g.shape[0]
@@ -24,30 +25,21 @@ D = np.random.rand(nbf, nbf)
 D = (D + D.T) / 2
 
 # Reference
-t_jref_start = time.time()
-for i in range(0,100):
-    J_ref = np.einsum("pqrs,rs->pq", g, D)
-t_jref_stop = time.time()
-print("J_ref time = ",(t_jref_stop - t_jref_start) / 100)
-t_kref_start = time.time()
-for i in range(0,100):
-    K_ref = np.einsum("pqrs,qs->pr", g, D)
-t_kref_stop = time.time()
-print("K_ref time = ",(t_kref_stop - t_kref_start) / 100)
+J_ref = np.einsum("pqrs,rs->pq", g, D)
+K_ref = np.einsum("pqrs,qs->pr", g, D)
 
-# Your implementation
-t_jref_start = time.time()
-for i in range(0,100):
-    J = jk_build.J_build(g, D)
-t_jref_stop = time.time()
-print("J_build time = ",(t_jref_stop - t_jref_start) / 100)
-t_kref_start = time.time()
-for i in range(0,100):
-    K = jk_build.K_build(g, D)
-t_kref_stop = time.time()
-print("K_build time = ",(t_kref_stop - t_kref_start) / 100)
+# Your new class implementation
+JK_bldr = jk_build.JKBuilder(g)
+J = JK_bldr.J_build(D)
+print(J_ref)
+print("\n\n\n")
+print(J)
+#JK_bldr.K_build(D)
 
+# Your old implementation
+#J = jk_build.J_build(g, D)
+#K = jk_build.K_build(g, D)
 
 # Make sure your implementation is correct
 print("J is correct: %s" % np.allclose(J, J_ref))
-print("K is correct: %s" % np.allclose(K, K_ref))
+#print("K is correct: %s" % np.allclose(K, K_ref))
